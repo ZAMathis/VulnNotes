@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "description": "vulnerable note taking app using expressjs",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "start": "node index.js"
+  },
   "author": "ZAMathis",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7"
   }
 }
