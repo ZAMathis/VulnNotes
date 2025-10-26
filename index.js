@@ -4,6 +4,11 @@ const port = 3000;
 const db = require('./database');
 const bodyParser = require('body-parser');
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(express.static('public'));
+
 app.get('/', (req, res) => {
   res.send(`<h1>yoooo</h1>`);
 });
@@ -18,11 +23,8 @@ app.get('/test-route', (req, res) => {
     });
 });
 
-app.use(bodyParser.json());
-
 app.post('/register', (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
+    const { username, password } = req.body;
 
     const sql = `INSERT INTO users (username, password) VALUES ('${username}', '${password}')`;
 
@@ -32,6 +34,24 @@ app.post('/register', (req, res) => {
             return;
         }
         res.status(201).send(`User registered with ID: ${this.lastID}`);
+    });
+});
+
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+
+    const sql = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
+
+    db.all(sql, function(err, rows) {
+        if (err) {
+            res.status(500).send('Error logging in');
+            return;
+        }
+        if (rows.length > 0) {
+            res.status(200).send('Login successful');
+        } else {
+            res.status(401).send('Invalid credentials');
+        }
     });
 });
 
