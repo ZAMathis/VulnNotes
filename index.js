@@ -9,8 +9,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static('public'));
 
+/****** GET routes *******/
+
 app.get('/', (req, res) => {
-  res.send(`<h1>yoooo</h1>`);
+    res.sendFile(__dirname + '/public/index.html');
 });
 
 app.get('/test-route', (req, res) => {
@@ -22,6 +24,16 @@ app.get('/test-route', (req, res) => {
         res.json(rows);
     });
 });
+
+app.get('/register', (req, res) => {
+    res.sendFile(__dirname + '/public/register.html');
+});
+
+app.get('/login', (req, res) => {
+    res.sendFile(__dirname + '/public/login.html');
+});
+
+/****** POST routes *******/
 
 app.post('/register', (req, res) => {
     const { username, password } = req.body;
