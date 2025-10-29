@@ -131,3 +131,82 @@ h1 {
 .form .forgot:hover {
     color: #1aa7ad;
 }
+
+.notes-container {
+    width: 80%;
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.note-form {
+    background: #fff;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, .25);
+}
+
+.note-form h2 {
+    margin-top: 0;
+    color: #2a2a2a;
+    font-family: 'open sans condensed';
+    text-transform: uppercase;
+    font-weight: 200;
+}
+
+.note-form input,
+.note-form textarea {
+    display: block;
+    width: 100%;
+    margin-bottom: 1.5em;
+    padding: .5em;
+    border: 1px solid #eaeaea;
+    color: #757575;
+    font-family: 'open sans', helvetica, arial;
+}
+
+.note-form textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.note-form input:focus,
+.note-form textarea:focus {
+    outline: none;
+    border-color: #1fb5bf;
+}
+
+.notes-list {
+    margin-top: 2rem;
+}
+
+.note-item {
+    background: #fff;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, .25);
+}
+
+.note-item h3 {
+    margin-top: 0;
+    color: #2a2a2a;
+    font-family: 'open sans condensed';
+    text-transform: uppercase;
+    font-weight: 300;
+}
+
+.note-item p {
+    color: #757575;
+    line-height: 1.6;
+}
+
+.back-link {
+    display: inline-block;
+    margin: 1rem 0;
+    color: #1fb5bf;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    color: #21c1c9;
+}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css" />
+    <title>Notes</title>
+</head>
+<body>
+    <div class="notes-container">
+        <a href="/" class="back-link">← Back to Home</a>
+        
+        <div class="note-form">
+            <h2>Create New Note</h2>
+            <form method="post" action="/notes">
+                <input type="text" name="title" placeholder="Note Title" required />
+                <textarea name="content" placeholder="Note Content" required></textarea>
+                <button type="submit" class="btn">Add Note</button>
+            </form>
+        </div>
+
+        <div class="notes-list">
+            <h2>All Notes</h2>
+            <div id="notes">
+                <!-- notes will be displayed here by the server -->
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -33,6 +33,10 @@ app.get('/login', (req, res) => {
     res.sendFile(__dirname + '/public/login.html');
 });
 
+app.get('/notes', (req, res) => {
+    res.sendFile(__dirname + '/public/notes.html');
+});
+
 /****** POST routes *******/
 
 app.post('/register', (req, res) => {
