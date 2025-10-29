@@ -3,6 +3,7 @@ const app = express();
 const port = 3000;
 const db = require('./database');
 const bodyParser = require('body-parser');
+const fs = require('fs');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -34,7 +35,27 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/notes', (req, res) => {
-    res.sendFile(__dirname + '/public/notes.html');
+    db.all('SELECT * FROM notes', [], (err, rows) => {
+        if (err) {
+            res.status(500).send('Database error');
+            return;
+        }
+
+        fs.readFile(__dirname + '/public/notes.html', 'utf8', (err, data) => {
+            if (err) {
+                res.status(500).send('File read error');
+                return;
+            }
+            let notesHTML = ''
+            rows.forEach((note) => {
+                notesHTML += `<div class="note"><h3>${note.title}</h3><p>${note.content}</p></div>`;
+            });
+
+            const html = data.replace('<!-- notes will be displayed here by the server -->', notesHTML);
+
+            res.send(html);
+        });
+    });
 });
 
 /****** POST routes *******/
@@ -46,10 +67,14 @@ app.post('/register', (req, res) => {
 
     db.run(sql, function(err) {
         if (err) {
-            res.status(500).send('Error registering user');
+            console.log('Error registering user')
+            res.status(500).redirect('/register');
             return;
         }
-        res.status(201).send(`User registered with ID: ${this.lastID}`);
+        console.log("User registered with ID: ", this.lastID);
+        console.log('Registration successful! Redirecting to login page.');
+
+        res.status(200).redirect('/login');
     });
 });
 
@@ -60,15 +85,38 @@ app.post('/login', (req, res) => {
 
     db.all(sql, function(err, rows) {
         if (err) {
-            res.status(500).send('Error logging in');
+            console.log('Error logging in')
+            res.status(500).redirect('/login');
             return;
         }
         if (rows.length > 0) {
-            res.status(200).send('Login successful');
+            console.log('Login successful');
+            res.status(200).redirect('/notes');
         } else {
-            res.status(401).send('Invalid credentials');
+            console.log('Invalid credentials');
+            res.status(401).redirect('/login');
         }
     });
+});
+
+app.post('/notes', (req, res) => {
+    let { title, content } = req.body;
+
+    console.log(title);
+    console.log(content);
+
+    const sql = `INSERT INTO notes (user_id, title, content) VALUES (1, '${title}', '${content}')`;
+
+    console.log('SQL: ', sql);
+    db.run(sql, function(err) {
+        if (err) {
+            console.log(err);
+            res.status(500).send('Error saving note: ' + err.message);
+            return;
+        }
+        res.redirect('/notes');
+    });
+
 });
 
 app.listen(port, () => {
