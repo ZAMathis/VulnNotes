@@ -210,3 +210,8 @@ h1 {
 .back-link:hover {
     color: #21c1c9;
 }
+
+.dashboard-actions {
+    display: flex;
+    justify-content: center;
+}

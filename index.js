@@ -3,11 +3,17 @@ const app = express();
 const port = 3000;
 const db = require('./database');
 const bodyParser = require('body-parser');
+const session = require('express-session');
 const fs = require('fs');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.use(session({
+    secret: 'weaksecret',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {secure: false} // obviously this would be true
+}))
 app.use(express.static('public'));
 
 /****** GET routes *******/
@@ -22,6 +28,7 @@ app.get('/test-route', (req, res) => {
             res.status(500).send('Database error');
             return;
         }
+        // console.log(req.session);
         res.json(rows);
     });
 });
@@ -58,6 +65,42 @@ app.get('/notes', (req, res) => {
     });
 });
 
+app.get('/dashboard', (req, res) => {
+    res.sendFile(__dirname + '/public/dashboard.html');
+});
+
+app.get('/profile', (req, res) => {
+    if (!req.session.userId) {
+        res.status(401).redirect('/login');
+        return;
+    }
+    res.redirect(`/profile/${req.session.userId}`);
+});
+
+app.get('/profile/:id', (req, res) => {
+    const userId = req.params.id;
+
+    const sql = `SELECT * FROM users WHERE id = '${userId}'`;
+
+    db.get(sql, function(err, user) {
+        if (err) {
+            console.log('Error fetching user profile')
+            res.status(500).redirect('/dashboard');
+            return;
+        }
+        if (user) {
+            console.log('User profile fetched');
+            console.log(`username : ${user.username} id: ${user.id}`);
+
+            res.status(200).json(user);
+        } else {
+            console.log('User not found');
+            res.status(404).redirect('/dashboard');
+        }
+    });
+
+});
+
 /****** POST routes *******/
 
 app.post('/register', (req, res) => {
@@ -72,7 +115,6 @@ app.post('/register', (req, res) => {
             return;
         }
         console.log("User registered with ID: ", this.lastID);
-        console.log('Registration successful! Redirecting to login page.');
 
         res.status(200).redirect('/login');
     });
@@ -91,6 +133,9 @@ app.post('/login', (req, res) => {
         }
         if (rows.length > 0) {
             console.log('Login successful');
+            // console.log(rows);
+
+            req.session.userId = rows[0].id;
             res.status(200).redirect('/notes');
         } else {
             console.log('Invalid credentials');
