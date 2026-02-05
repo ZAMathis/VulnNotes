@@ -16,6 +16,7 @@ const createTableNotes = `
     user_id INTEGER REFERENCES users(id),
     title TEXT,
     content TEXT,
+    is_private INTEGER DEFAULT 0,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `;

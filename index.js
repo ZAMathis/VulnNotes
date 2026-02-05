@@ -38,10 +38,31 @@ app.get('/register', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    res.sendFile(__dirname + '/public/login.html');
+    const error = req.query.error;
+
+    fs.readFile(__dirname + '/public/login.html', 'utf-8', (err, data) => {
+        if (err) {
+            res.status(500).send('File read error');
+            return;
+        }
+        
+        let errorHTML = '';
+
+        if (error === 'not_logged_in') {
+            errorHTML = '<h1>You must be logged in to create notes!</h1>';
+        }
+
+        const html = data.replace('<!--DNR: FOR LOGIN ERROR MESSAGE-->', errorHTML);
+        res.send(html)
+    });
 });
 
 app.get('/notes', (req, res) => {
+    if (!req.session.userId) {
+        res.redirect('/login?error=not_logged_in');
+        return;
+    }
+
     const sql = 'SELECT notes.*, users.username FROM notes JOIN users ON notes.user_id = users.id';
 
     db.all(sql, [], (err, rows) => {
@@ -55,7 +76,7 @@ app.get('/notes', (req, res) => {
                 res.status(500).send('File read error');
                 return;
             }
-            let notesHTML = ''
+            let notesHTML = '';
             rows.forEach((note) => {
                 notesHTML += `
                 <div class="note-item">
@@ -152,14 +173,16 @@ app.post('/login', (req, res) => {
 });
 
 app.post('/notes', (req, res) => {
-    let { title, content } = req.body;
+    let { title, content, is_private } = req.body;
 
     const userId = req.session.userId;
+
+    const isPrivate = is_private ? 1 : 0;
 
     console.log(title);
     console.log(content);
 
-    const sql = `INSERT INTO notes (user_id, title, content) VALUES (${userId}, '${title}', '${content}')`;
+    const sql = `INSERT INTO notes (user_id, title, content, is_private) VALUES (${userId}, '${title}', '${content}', ${isPrivate})`;
 
     console.log('SQL: ', sql);
     db.run(sql, function(err) {
