@@ -42,7 +42,9 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/notes', (req, res) => {
-    db.all('SELECT * FROM notes', [], (err, rows) => {
+    const sql = 'SELECT notes.*, users.username FROM notes JOIN users ON notes.user_id = users.id';
+
+    db.all(sql, [], (err, rows) => {
         if (err) {
             res.status(500).send('Database error');
             return;
@@ -55,7 +57,12 @@ app.get('/notes', (req, res) => {
             }
             let notesHTML = ''
             rows.forEach((note) => {
-                notesHTML += `<div class="note"><h3>${note.title}</h3><p>${note.content}</p></div>`;
+                notesHTML += `
+                <div class="note-item">
+                <h3>${note.title}</h3>
+                <p>${note.content}</p>
+                <small>- ${note.username}</small>
+                </div>`;
             });
 
             const html = data.replace('<!-- notes will be displayed here by the server -->', notesHTML);
@@ -147,10 +154,12 @@ app.post('/login', (req, res) => {
 app.post('/notes', (req, res) => {
     let { title, content } = req.body;
 
+    const userId = req.session.userId;
+
     console.log(title);
     console.log(content);
 
-    const sql = `INSERT INTO notes (user_id, title, content) VALUES (1, '${title}', '${content}')`;
+    const sql = `INSERT INTO notes (user_id, title, content) VALUES (${userId}, '${title}', '${content}')`;
 
     console.log('SQL: ', sql);
     db.run(sql, function(err) {
