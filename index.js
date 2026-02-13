@@ -1,3 +1,12 @@
+/*
+    current vulnerabilities:
+    - SQL Injection in /login, /register, /profile/:id, and /notes POST route
+    - XSS in /notes GET route (note titles and content are not sanitized)
+
+    currently working on:
+    - IDOR in /profile/:id GET route (users can access other users' profiles by changing the ID in the URL, being able to view private notes)
+*/
+
 const express = require('express');
 const app = express();
 const port = 3000;
@@ -63,7 +72,7 @@ app.get('/notes', (req, res) => {
         return;
     }
 
-    const sql = 'SELECT notes.*, users.username FROM notes JOIN users ON notes.user_id = users.id';
+    const sql = 'SELECT notes.*, users.username FROM notes JOIN users ON notes.user_id = users.id WHERE notes.is_private = 0';
 
     db.all(sql, [], (err, rows) => {
         if (err) {
@@ -108,25 +117,50 @@ app.get('/profile', (req, res) => {
 app.get('/profile/:id', (req, res) => {
     const userId = req.params.id;
 
-    const sql = `SELECT * FROM users WHERE id = '${userId}'`;
 
-    db.get(sql, function(err, user) {
-        if (err) {
-            console.log('Error fetching user profile')
-            res.status(500).redirect('/dashboard');
+    const userSql = `SELECT * FROM users WHERE id = '${userId}'`;
+
+    db.get(userSql, (err, user) => {
+        if (err || !user) {
+            res.status(404).send('User not found');
             return;
         }
-        if (user) {
-            console.log('User profile fetched');
-            console.log(`username : ${user.username} id: ${user.id}`);
 
-            res.status(200).json(user);
-        } else {
-            console.log('User not found');
-            res.status(404).redirect('/dashboard');
-        }
+        const notesSql = `SELECT * FROM notes WHERE user_id = ${userId}`;
+
+        db.all(notesSql, [], (err, notes) => {
+            if (err) {
+                res.status(500).send('Database error');
+                return;
+            }
+
+            fs.readFile(__dirname + '/public/profile.html', 'utf8', (err, data) => {
+                if (err) {
+                    res.status(500).send('File read error');
+                    return;
+                }
+
+                let userNotesHTML = '';
+                notes.forEach((note) => {
+                    const isPrivate = note.is_private ? '(Private)' : '(Public)';
+
+                    userNotesHTML += `
+                    <div class="note-item">
+                    <h3>${note.title}</h3>
+                    <p>${note.content}</p>
+                    <small>- ${user.username}, ${isPrivate}</small>
+                    </div>`;
+                });
+
+                const html = data
+                    .replace('<!-- USERNAME -->', user.username)
+                    .replace('<!-- PRIVATE NOTES HERE -->', userNotesHTML);
+
+                res.send(html);
+
+            });
+        });
     });
-
 });
 
 /****** POST routes *******/
